@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Button, Grid, GridItem, Text, useToast } from '@chakra-ui/react';
 
 const Index = () => {
@@ -26,15 +26,33 @@ const Index = () => {
     return null;
   };
 
-  const handleClick = (i) => {
-    const squares = board.slice();
-    if (calculateWinner(board) || squares[i]) {
-      return;
-    }
-    squares[i] = xIsNext ? 'X' : 'O';
-    setBoard(squares);
-    setXIsNext(!xIsNext);
+  const aiMove = () => {
+    const emptyIndices = board.map((val, idx) => val === null ? idx : null).filter(val => val !== null);
+    if (emptyIndices.length === 0 || calculateWinner(board)) return;
+    const randomIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+    const newBoard = [...board];
+    newBoard[randomIndex] = 'O';
+    setBoard(newBoard);
+    setXIsNext(true);
   };
+
+  const handleClick = (i) => {
+    if (xIsNext) {
+      const squares = board.slice();
+      if (calculateWinner(board) || squares[i]) {
+        return;
+      }
+      squares[i] = 'X';
+      setBoard(squares);
+      setXIsNext(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!xIsNext) {
+      setTimeout(aiMove, 1000); // AI will make a move after 1 second
+    }
+  }, [xIsNext, board]);
 
   const renderSquare = (i) => (
     <Button onClick={() => handleClick(i)} size="lg" p={7} m={1}>
@@ -53,7 +71,7 @@ const Index = () => {
       isClosable: true,
     });
   } else {
-    status = 'Next player: ' + (xIsNext ? 'X' : 'O');
+    status = 'Next player: ' + (xIsNext ? 'X' : 'AI');
   }
 
   return (
